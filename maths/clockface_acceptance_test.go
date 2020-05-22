@@ -9,7 +9,6 @@ import (
 	clockface "github.com/arunkbharathan/learnWithTests/maths"
 )
 
-// Svg was generated 2020-05-22 00:48:37 by arun on Aruns-MacBook-Air.local.
 type Svg struct {
 	XMLName xml.Name `xml:"svg"`
 	Text    string   `xml:",chardata"`
@@ -25,7 +24,7 @@ type Svg struct {
 		R     string `xml:"r,attr"`
 		Style string `xml:"style,attr"`
 	} `xml:"circle"`
-	Line struct {
+	Line []struct {
 		Text  string `xml:",chardata"`
 		X1    string `xml:"x1,attr"`
 		Y1    string `xml:"y1,attr"`
@@ -37,15 +36,16 @@ type Svg struct {
 
 func TestSVGWriterAtMidnight(t *testing.T) {
 	tm := time.Date(1337, time.January, 1, 0, 0, 0, 0, time.UTC)
-
 	b := bytes.Buffer{}
+
 	clockface.SVGWriter(&b, tm)
 
 	svg := Svg{}
+
 	xml.Unmarshal(b.Bytes(), &svg)
 
-	x2 := "150"
-	y2 := "60"
+	x2 := "150.000"
+	y2 := "60.000"
 
 	for _, line := range svg.Line {
 		if line.X2 == x2 && line.Y2 == y2 {
@@ -53,5 +53,5 @@ func TestSVGWriterAtMidnight(t *testing.T) {
 		}
 	}
 
-	t.Errorf("Expected to find the second hand with x2 of %+v and y2 of %+v, in the SVG output %v", x2, y2, b.String())
+	t.Errorf("Expected to find the second hand with x2 of %v and y2 of %v, in the SVG output %v", x2, y2, b.String())
 }
