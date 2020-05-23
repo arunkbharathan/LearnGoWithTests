@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/quii/learn-go-with-tests/time/v1"
+	poker "github.com/arunkbharathan/learnWithTests/time"
 )
 
 type scheduledAlert struct {
