@@ -7,12 +7,15 @@ import (
 	"sort"
 )
 
+// FileSystemPlayerStore stores players in the filesystem
 type FileSystemPlayerStore struct {
 	database *json.Encoder
 	league   League
 }
 
+// NewFileSystemPlayerStore creates a FileSystemPlayerStore initialising the store if needed
 func NewFileSystemPlayerStore(file *os.File) (*FileSystemPlayerStore, error) {
+
 	err := initialisePlayerDBFile(file)
 
 	if err != nil {
@@ -47,15 +50,20 @@ func initialisePlayerDBFile(file *os.File) error {
 
 	return nil
 }
+
+// GetLeague returns the scores of all the players
 func (f *FileSystemPlayerStore) GetLeague() League {
 	sort.Slice(f.league, func(i, j int) bool {
 		return f.league[i].Wins > f.league[j].Wins
 	})
 	return f.league
 }
+
+// GetPlayerScore retrieves a player's score
 func (f *FileSystemPlayerStore) GetPlayerScore(name string) int {
 
 	player := f.league.Find(name)
+
 	if player != nil {
 		return player.Wins
 	}
@@ -63,8 +71,10 @@ func (f *FileSystemPlayerStore) GetPlayerScore(name string) int {
 	return 0
 }
 
+// RecordWin will store a win for a player, incrementing wins if already known
 func (f *FileSystemPlayerStore) RecordWin(name string) {
 	player := f.league.Find(name)
+
 	if player != nil {
 		player.Wins++
 	} else {
