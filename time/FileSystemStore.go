@@ -13,26 +13,6 @@ type FileSystemPlayerStore struct {
 	league   League
 }
 
-func FileSystemPlayerStoreFromFile(path string) (*FileSystemPlayerStore, func(), error) {
-	db, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE, 0666)
-
-	if err != nil {
-		return nil, nil, fmt.Errorf("problem opening %s %v", path, err)
-	}
-
-	closeFunc := func() {
-		db.Close()
-	}
-
-	store, err := NewFileSystemPlayerStore(db)
-
-	if err != nil {
-		return nil, nil, fmt.Errorf("problem creating file system player store, %v ", err)
-	}
-
-	return store, closeFunc, nil
-}
-
 // NewFileSystemPlayerStore creates a FileSystemPlayerStore initialising the store if needed
 func NewFileSystemPlayerStore(file *os.File) (*FileSystemPlayerStore, error) {
 
@@ -52,6 +32,27 @@ func NewFileSystemPlayerStore(file *os.File) (*FileSystemPlayerStore, error) {
 		database: json.NewEncoder(&tape{file}),
 		league:   league,
 	}, nil
+}
+
+// FileSystemPlayerStoreFromFile creates a PlayerStore from the contents of a JSON file found at path
+func FileSystemPlayerStoreFromFile(path string) (*FileSystemPlayerStore, func(), error) {
+	db, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE, 0666)
+
+	if err != nil {
+		return nil, nil, fmt.Errorf("problem opening %s %v", path, err)
+	}
+
+	closeFunc := func() {
+		db.Close()
+	}
+
+	store, err := NewFileSystemPlayerStore(db)
+
+	if err != nil {
+		return nil, nil, fmt.Errorf("problem creating file system player store, %v ", err)
+	}
+
+	return store, closeFunc, nil
 }
 
 func initialisePlayerDBFile(file *os.File) error {
