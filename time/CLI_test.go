@@ -1,6 +1,7 @@
 package poker_test
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"strings"
@@ -9,6 +10,11 @@ import (
 
 	poker "github.com/arunkbharathan/learnWithTests/time"
 )
+
+var dummyBlindAlerter = &SpyBlindAlerter{}
+var dummyPlayerStore = &poker.StubPlayerStore{}
+var dummyStdIn = &bytes.Buffer{}
+var dummyStdOut = &bytes.Buffer{}
 
 type scheduledAlert struct {
 	at     time.Duration
@@ -30,7 +36,18 @@ func (s *SpyBlindAlerter) ScheduleAlertAt(at time.Duration, amount int) {
 var dummySpyAlerter = &SpyBlindAlerter{}
 
 func TestCLI(t *testing.T) {
+	t.Run("it prompts the user to enter the number of players", func(t *testing.T) {
+		stdout := &bytes.Buffer{}
+		cli := poker.NewCLI(dummyPlayerStore, dummyStdIn, stdout, dummyBlindAlerter)
+		cli.PlayPoker()
 
+		got := stdout.String()
+		want := "Please enter the number of players: "
+
+		if got != want {
+			t.Errorf("got %q, want %q", got, want)
+		}
+	})
 	t.Run("it schedules printing of blind values", func(t *testing.T) {
 		in := strings.NewReader("Chris wins\n")
 		playerStore := &poker.StubPlayerStore{}
