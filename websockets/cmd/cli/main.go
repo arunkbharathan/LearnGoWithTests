@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	poker "github.com/arunkbharathan/learnWithTests/time"
+	poker "github.com/arunkbharathan/learnWithTests/websockets"
 )
 
 const dbFileName = "game.db.json"

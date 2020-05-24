@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"os"
 
-	poker "github.com/arunkbharathan/learnWithTests/time"
+	poker "github.com/arunkbharathan/learnWithTests/websockets"
 )
 
 const dbFileName = "game.db.json"
@@ -23,7 +23,10 @@ func main() {
 		log.Fatalf("problem creating file system player store, %v ", err)
 	}
 
-	server := poker.NewPlayerServer(store)
+	server, err := poker.NewPlayerServer(store)
+	if err != nil {
+		log.Fatalf("Can't create server %v", err)
+	}
 
 	if err := http.ListenAndServe(":5000", server); err != nil {
 		log.Fatalf("could not listen on port 5000 %v", err)

@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	poker "github.com/arunkbharathan/learnWithTests/time"
+	poker "github.com/arunkbharathan/learnWithTests/websockets"
 )
 
 func TestGame_Start(t *testing.T) {
