@@ -3,8 +3,10 @@ package poker_test
 import (
 	"bytes"
 	"io"
+	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	poker "github.com/arunkbharathan/learnWithTests/websockets"
 )
@@ -22,7 +24,7 @@ type GameSpy struct {
 	FinishCalledWith string
 }
 
-func (g *GameSpy) Start(numberOfPlayers int) {
+func (g *GameSpy) Start(numberOfPlayers int, to io.Writer) {
 	g.StartCalled = true
 	g.StartCalledWith = numberOfPlayers
 }
@@ -36,20 +38,27 @@ func userSends(messages ...string) io.Reader {
 	return strings.NewReader(strings.Join(messages, "\n"))
 }
 
+var (
+	dummyGame = &GameSpy{}
+)
+
 func TestCLI(t *testing.T) {
 
 	t.Run("start game with 3 players and finish game with 'Chris' as winner", func(t *testing.T) {
-		game := &GameSpy{}
-		stdout := &bytes.Buffer{}
+		game := &poker.GameSpy{}
+		winner := "Ruth"
+		server := httptest.NewServer(mustMakePlayerServer(t, dummyPlayerStore, game))
+		ws := mustDialWS(t, "ws"+strings.TrimPrefix(server.URL, "http")+"/ws")
 
-		in := userSends("3", "Chris wins")
-		cli := poker.NewCLI(in, stdout, game)
+		defer server.Close()
+		defer ws.Close()
 
-		cli.PlayPoker()
+		writeWSMessage(t, ws, "3")
+		writeWSMessage(t, ws, winner)
 
-		assertMessagesSentToUser(t, stdout, poker.PlayerPrompt)
+		time.Sleep(10 * time.Millisecond)
 		assertGameStartedWith(t, game, 3)
-		assertFinishCalledWith(t, game, "Chris")
+		assertFinishCalledWith(t, game, winner)
 	})
 
 	t.Run("start game with 8 players and record 'Cleo' as winner", func(t *testing.T) {
@@ -134,3 +143,28 @@ func assertScheduledAlert(t *testing.T, got, want poker.ScheduledAlert) {
 		t.Errorf("got %+v, want %+v", got, want)
 	}
 }
+
+func mustMakePlayerServer(t *testing.T, store poker.PlayerStore, game *GameSpy) *poker.PlayerServer {
+	server, err := poker.NewPlayerServer(store)
+	if err != nil {
+		t.Fatal("problem creating player server", err)
+	}
+	return server
+}
+
+// func mustDialWS(t *testing.T, url string) *websocket.Conn {
+// 	ws, _, err := websocket.DefaultDialer.Dial(url, nil)
+
+// 	if err != nil {
+// 		t.Fatalf("could not open a ws connection on %s %v", url, err)
+// 	}
+
+// 	return ws
+// }
+
+// func writeWSMessage(t *testing.T, conn *websocket.Conn, message string) {
+// 	t.Helper()
+// 	if err := conn.WriteMessage(websocket.TextMessage, []byte(message)); err != nil {
+// 		t.Fatalf("could not send message over ws connection %v", err)
+// 	}
+// }
