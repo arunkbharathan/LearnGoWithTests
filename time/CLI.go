@@ -8,13 +8,22 @@ import (
 	"strings"
 )
 
-type CLI struct {
-	in   *bufio.Scanner
-	out  io.Writer
-	game *Game
+// Game manages the state of a game
+type Game interface {
+	Start(numberOfPlayers int)
+	Finish(winner string)
 }
 
-func NewCLI(in io.Reader, out io.Writer, game *Game) *CLI {
+// CLI helps players through a game of poker
+type CLI struct {
+	playerStore PlayerStore
+	in          *bufio.Scanner
+	out         io.Writer
+	game        Game
+}
+
+// NewCLI creates a CLI for playing poker
+func NewCLI(in io.Reader, out io.Writer, game Game) *CLI {
 	return &CLI{
 		in:   bufio.NewScanner(in),
 		out:  out,
@@ -22,13 +31,17 @@ func NewCLI(in io.Reader, out io.Writer, game *Game) *CLI {
 	}
 }
 
+// PlayerPrompt is the text asking the user for the number of players
 const PlayerPrompt = "Please enter the number of players: "
 
+// ErrorPlayerNumberPrompt tells the user they entered in the value wrong
+const ErrorPlayerNumberPrompt = "ERROR: Please enter the number of players as a number: "
+
+// PlayPoker starts the game
 func (cli *CLI) PlayPoker() {
 	fmt.Fprint(cli.out, PlayerPrompt)
 
-	numberOfPlayersInput := cli.readLine()
-	numberOfPlayers, _ := strconv.Atoi(strings.Trim(numberOfPlayersInput, "\n"))
+	numberOfPlayers, _ := strconv.Atoi(cli.readLine())
 
 	cli.game.Start(numberOfPlayers)
 
@@ -39,7 +52,7 @@ func (cli *CLI) PlayPoker() {
 }
 
 func extractWinner(userInput string) string {
-	return strings.Replace(userInput, " wins\n", "", 1)
+	return strings.Replace(userInput, " wins", "", 1)
 }
 
 func (cli *CLI) readLine() string {
